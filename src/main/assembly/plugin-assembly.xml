@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<assembly>
+	<id>plugin</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<!-- Include the main plugin Jar file -->
+	<files>
+		<file>
+			<source>${project.build.directory}/${project.build.finalName}.jar</source>
+		</file>
+	</files>
+
+	<!-- Include plugin schema configuration -->
+	<fileSets>
+		<fileSet>
+			<directory>src/main/resources/schemas</directory>
+			<outputDirectory>schemas</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/resources/images</directory>
+			<outputDirectory>images</outputDirectory>
+		</fileSet>
+	</fileSets>
+
+	<!-- Finally include plugin dependencies -->
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+		</dependencySet>
+	</dependencySets>
+</assembly>
