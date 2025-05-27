@@ -1,0 +1,24 @@
+= MCP Entrypoint
+
+ifdef::env-github[]
+image:https://img.shields.io/static/v1?label=available%20at&message=Gravitee.io&color=1EC9D2["Gravitee.io", link="https://download.gravitee.io/#graviteeio-ee/apim/plugins/entrypoints/gravitee-entrypoint-mcp/"]
+image:https://img.shields.io/badge/License-Apache%202.0-blue.svg["License", link="https://github.com/gravitee-io/gravitee-entrypoint-mcp/blob/master/LICENSE.txt"]
+image:https://img.shields.io/badge/semantic--release-conventional%20commits-e10079?logo=semantic-release["Releases", link="https://github.com/gravitee-io/gravitee-entrypoint-mcp/releases"]
+image:https://circleci.com/gh/gravitee-io/gravitee-entrypoint-sse.svg?style=shield&circle-token=62b071200b50818be6c423c654940a385b735068["CircleCI", link="https://circleci.com/gh/gravitee-io/gravitee-entrypoint-mcp"]
+endif::[]
+
+== Description
+
+An MCP entrytpoint that allow an AI agent to interact with an existing HTTP Proxy API
+
+=== Compatibility matrix
+
+|===
+|Plugin version | APIM version
+|1.x            | 4.8.x
+|===
+
+
+=== Configuration
+
+TBD

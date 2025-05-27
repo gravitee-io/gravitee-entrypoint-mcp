@@ -1,0 +1,100 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "definitions": {
+        "MCPGatewayMappingHttp": {
+            "description": "Contains information that will be used by the gateway to map a JsonRPCRequest to an HTTP call to the backend.",
+            "properties": {
+                "method": {
+                    "type": "string",
+                    "description": "HTTP method to use to call the backend"
+                },
+                "path": {
+                    "type": "string",
+                    "description": "Path to use to call the backend"
+                },
+                "contentType": {
+                    "type": "string",
+                    "description": "ContentType to use to call the backend"
+                },
+                "pathParams": {
+                    "type": "array",
+                    "description": "List of arguments from the JsonRPCRequest to be used as a path param",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "queryParams": {
+                    "type": "array",
+                    "description": "List of arguments from the JsonRPCRequest to be used as a query param",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "headers": {
+                    "type": "array",
+                    "description": "List of arguments from the JsonRPCRequest to be used as an HTTP header",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "MCPGatewayMapping": {
+            "description": "Contains information that will be used by the gateway to map a JsonRPCRequest to a call.",
+            "properties": {
+                "http": {
+                    "$ref": "#/definitions/MCPGatewayMappingHttp"
+                }
+            }
+        },
+        "MCPToolDefinition": {
+            "properties": {
+                "name": {
+                    "title": "Tool name",
+                    "type": "string",
+                    "description": "Name of the MCP tool."
+                },
+                "description": {
+                    "title": "Tool description",
+                    "type": "string",
+                    "description": "Descriptions of the MCP tool."
+                },
+                "inputSchema": {
+                    "title": "Tool input schema",
+                    "type": "object",
+                    "description": "Input schema of the MCP tool.",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "MCPTool": {
+            "properties": {
+                "toolDefinition": {
+                    "$ref": "#/definitions/MCPToolDefinition"
+                },
+                "gatewayMapping": {
+                    "$ref": "#/definitions/MCPGatewayMapping"
+                }
+            }
+        }
+    },
+    "properties": {
+        "tools": {
+            "type": "array",
+            "title": "MCP tools",
+            "description": "The available tools description",
+            "items": {
+                "$ref": "#/definitions/MCPTool"
+            }
+        },
+        "mcpPath": {
+            "title": "The MCP path for an AI agent",
+            "description": "The MCP path an AI agent will use to connect to the API. This path is appended to the API contextPath. Default is: /mcp",
+            "type": "string",
+            "default": "/mcp"
+        }
+    },
+    "additionalProperties": false,
+    "required": ["mcpPath"]
+}
