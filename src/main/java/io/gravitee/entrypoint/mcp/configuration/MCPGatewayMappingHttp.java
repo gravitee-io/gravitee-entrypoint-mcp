@@ -30,7 +30,7 @@ public class MCPGatewayMappingHttp {
     private String method;
     private String path;
     private String contentType;
-    private List<String> pathParams;
-    private List<String> queryParams;
-    private List<String> headers;
+    private List<String> pathParams = List.of();
+    private List<String> queryParams = List.of();
+    private List<String> headers = List.of();
 }

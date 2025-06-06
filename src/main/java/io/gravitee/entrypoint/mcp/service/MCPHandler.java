@@ -175,6 +175,7 @@ public class MCPHandler {
         Optional<String> queryParams = mcpGatewayMapping
             .getQueryParams()
             .stream()
+            .filter(arguments::containsKey)
             .map(s -> s + "=" + arguments.get(s).toString())
             .reduce((s, s2) -> s + "&" + s2);
         if (queryParams.isPresent()) {
