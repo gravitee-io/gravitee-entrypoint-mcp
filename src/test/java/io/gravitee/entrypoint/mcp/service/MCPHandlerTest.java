@@ -98,7 +98,7 @@ class MCPHandlerTest {
                                 .contentType("application/json")
                                 .headers(List.of("X-My-Header"))
                                 .pathParams(List.of("myPathParam", "anotherParam"))
-                                .queryParams(List.of("myQueryParam"))
+                                .queryParams(List.of("myQueryParam", "myQueryParam2"))
                                 .build()
                         )
                         .build()
