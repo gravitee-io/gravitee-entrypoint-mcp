@@ -1,3 +1,10 @@
+# [1.0.0-alpha.2](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.0-alpha.1...1.0.0-alpha.2) (2025-06-06)
+
+
+### Bug Fixes
+
+* fix some npe ([11298ba](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/11298baa3aa6802feaf27b99be3f5d8ccf3b972b))
+
 # 1.0.0-alpha.1 (2025-06-06)
 
 
