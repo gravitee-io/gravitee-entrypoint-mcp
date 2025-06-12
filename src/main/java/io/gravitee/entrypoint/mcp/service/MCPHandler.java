@@ -163,6 +163,8 @@ public class MCPHandler {
             mutableRequest.headers().set(HttpHeaderNames.ACCEPT, "application/json");
             mutableRequest.headers().set(HttpHeaderNames.CONTENT_TYPE, mcpGatewayMappingHttp.getContentType());
             mutableRequest.body(Buffer.buffer(mapper.writeValueAsString(jsonRPCCallRequestParams.getArguments().get("bodySchema"))));
+        } else {
+            mutableRequest.body(Buffer.buffer());
         }
     }
 
