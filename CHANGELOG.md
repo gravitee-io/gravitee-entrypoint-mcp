@@ -1,3 +1,10 @@
+# [1.0.0-alpha.3](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.0-alpha.2...1.0.0-alpha.3) (2025-06-13)
+
+
+### Bug Fixes
+
+* remove body if not attend ([76b4152](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/76b41526d2a93357f2499aef17b81cee262c5ce5))
+
 # [1.0.0-alpha.2](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.0-alpha.1...1.0.0-alpha.2) (2025-06-06)
 
 
