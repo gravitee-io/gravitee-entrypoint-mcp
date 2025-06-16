@@ -98,7 +98,7 @@ class MCPHandlerTest {
                                 .contentType("application/json")
                                 .headers(List.of("X-My-Header"))
                                 .pathParams(List.of("myPathParam", "anotherParam"))
-                                .queryParams(List.of("myQueryParam", "myQueryParam2"))
+                                .queryParams(List.of("myQueryParam", "myQueryParam2", "myQueryParam3"))
                                 .build()
                         )
                         .build()
@@ -271,6 +271,8 @@ class MCPHandlerTest {
                       "myPathParam": "pathParam1",
                       "anotherParam": "pathParam2",
                       "myQueryParam": "queryValue",
+                      "myQueryParam2": ["value1", "value2"],
+                      "myQueryParam3": [],
                       "bodySchema": {
                         "type": "string"
                       }
@@ -295,7 +297,7 @@ class MCPHandlerTest {
             assertThat(requestHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
             assertThat(requestHeaders.get(HttpHeaderNames.ACCEPT)).isEqualTo("application/json");
             verify(request).method(HttpMethod.POST);
-            verify(request).pathInfo("/foo/pathParam1/bar/pathParam2?myQueryParam=queryValue");
+            verify(request).pathInfo("/foo/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2");
             verify(request).body(argThat(buffer -> buffer.toString().equals("{\"type\":\"string\"}")));
         }
 
