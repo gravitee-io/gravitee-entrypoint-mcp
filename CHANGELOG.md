@@ -1,3 +1,11 @@
+# [1.0.0-alpha.4](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.0-alpha.3...1.0.0-alpha.4) (2025-06-16)
+
+
+### Bug Fixes
+
+* make array query params work with default swagger mode ([a6ac5ef](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/a6ac5ef9ad67c714d4a5c56400a00fd2a721c150))
+* remove CONTENT_TYPE & CONTENT_LENGTH when no body needed ([5c5992b](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/5c5992b304fff665ca7d0d49a5f7abb0b972fecf))
+
 # [1.0.0-alpha.3](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.0-alpha.2...1.0.0-alpha.3) (2025-06-13)
 
 
