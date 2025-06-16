@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -178,7 +179,15 @@ public class MCPHandler {
             .getQueryParams()
             .stream()
             .filter(arguments::containsKey)
-            .map(s -> s + "=" + arguments.get(s).toString())
+            .flatMap(arg -> {
+                // Note: We support only default swagger query serialization method e.g. ?arg=value1&arg=value2
+                // To change this behavior, we need to improve GatewayMapping to support more complex query serialization methods from imported Swagger spec
+                // Link: https://swagger.io/docs/specification/v3_0/serialization/#query-parameters
+                if (arguments.get(arg) instanceof List<?> values) {
+                    return values.stream().map(value -> arg + "=" + value.toString());
+                }
+                return Stream.of(arg + "=" + arguments.get(arg).toString());
+            })
             .reduce((s, s2) -> s + "&" + s2);
         if (queryParams.isPresent()) {
             path = path + "?" + queryParams.get();
