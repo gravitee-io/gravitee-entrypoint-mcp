@@ -158,14 +158,16 @@ public class MCPHandler {
 
         updateRequestHeaders(mutableRequest.headers(), jsonRPCCallRequestParams.getArguments(), mcpGatewayMappingHttp.getHeaders());
 
+        mutableRequest.headers().set(HttpHeaderNames.ACCEPT, "application/json");
+
         if (jsonRPCCallRequestParams.getArguments().get("bodySchema") != null) {
             log.debug("adding body");
-
-            mutableRequest.headers().set(HttpHeaderNames.ACCEPT, "application/json");
             mutableRequest.headers().set(HttpHeaderNames.CONTENT_TYPE, mcpGatewayMappingHttp.getContentType());
             mutableRequest.body(Buffer.buffer(mapper.writeValueAsString(jsonRPCCallRequestParams.getArguments().get("bodySchema"))));
         } else {
             mutableRequest.body(Buffer.buffer());
+            mutableRequest.headers().remove(HttpHeaderNames.CONTENT_TYPE);
+            mutableRequest.headers().remove(HttpHeaderNames.CONTENT_LENGTH);
         }
     }
 
