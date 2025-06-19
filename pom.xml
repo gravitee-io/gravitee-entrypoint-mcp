@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.entrypoint</groupId>
     <artifactId>gravitee-entrypoint-mcp</artifactId>
-    <version>1.0.0-alpha.4</version>
+    <version>1.0.0</version>
 
     <name>Gravitee.io APIM - Plugin - Entrypoint MCP</name>
     <description>An entrypoint to support MCP on existing HTTP API.</description>
