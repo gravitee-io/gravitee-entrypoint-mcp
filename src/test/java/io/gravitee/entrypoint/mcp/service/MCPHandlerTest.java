@@ -293,12 +293,14 @@ class MCPHandlerTest {
 
             assertThat((Boolean) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP)).isFalse();
 
+            String sentBuffer = "{\"type\":\"string\"}";
             assertThat(requestHeaders.get("X-My-Header")).isEqualTo("headerValue");
             assertThat(requestHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
+            assertThat(requestHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo(String.valueOf(sentBuffer.getBytes().length));
             assertThat(requestHeaders.get(HttpHeaderNames.ACCEPT)).isEqualTo("application/json");
             verify(request).method(HttpMethod.POST);
             verify(request).pathInfo("/foo/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2");
-            verify(request).body(argThat(buffer -> buffer.toString().equals("{\"type\":\"string\"}")));
+            verify(request).body(argThat(buffer -> buffer.toString().equals(sentBuffer)));
         }
 
         @Test
