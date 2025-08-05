@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.0...1.0.1) (2025-08-05)
+
+
+### Bug Fixes
+
+* override content length http header on post ([388ae32](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/388ae3271bdfea1c1a4066c0f86efaaa7c471750))
+
 # 1.0.0 (2025-06-19)
 
 
