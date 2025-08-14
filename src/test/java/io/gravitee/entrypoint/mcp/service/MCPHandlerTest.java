@@ -37,6 +37,7 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
@@ -98,7 +99,7 @@ class MCPHandlerTest {
                                 .contentType("application/json")
                                 .headers(List.of("X-My-Header"))
                                 .pathParams(List.of("myPathParam", "anotherParam"))
-                                .queryParams(List.of("myQueryParam", "myQueryParam2", "myQueryParam3"))
+                                .queryParams(List.of("myQueryParam", "myQueryParam2", "myQueryParam3", "myQueryParam4"))
                                 .build()
                         )
                         .build()
@@ -109,6 +110,7 @@ class MCPHandlerTest {
         cutConfiguration.setTools(tools);
         cut = new MCPHandler(cutConfiguration);
         ctx = new DefaultExecutionContext(request, response);
+        ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, "/contextPath");
     }
 
     @Nested
@@ -273,6 +275,7 @@ class MCPHandlerTest {
                       "myQueryParam": "queryValue",
                       "myQueryParam2": ["value1", "value2"],
                       "myQueryParam3": [],
+                      "myQueryParam4": "query with space",
                       "bodySchema": {
                         "type": "string"
                       }
@@ -299,8 +302,22 @@ class MCPHandlerTest {
             assertThat(requestHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo(String.valueOf(sentBuffer.getBytes().length));
             assertThat(requestHeaders.get(HttpHeaderNames.ACCEPT)).isEqualTo("application/json");
             verify(request).method(HttpMethod.POST);
-            verify(request).pathInfo("/foo/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2");
+            verify(request)
+                .pathInfo(
+                    "/foo/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2&myQueryParam4=query%20with%20space"
+                );
             verify(request).body(argThat(buffer -> buffer.toString().equals(sentBuffer)));
+        }
+
+        @Test
+        void shouldHandleToolsCallRequestWhenToolPathIsSameAsAPIContextPath() {
+            ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, "/foo");
+
+            cut.handleRequest(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+            verify(request)
+                .pathInfo(
+                    "/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2&myQueryParam4=query%20with%20space"
+                );
         }
 
         @Test
