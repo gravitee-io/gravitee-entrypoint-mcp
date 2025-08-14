@@ -37,6 +37,7 @@ import io.gravitee.entrypoint.mcp.model.initialize.JsonRPCInitializeResponseServ
 import io.gravitee.entrypoint.mcp.model.list.JsonRPCListResponse;
 import io.gravitee.entrypoint.mcp.model.list.JsonRPCListResponseResults;
 import io.gravitee.entrypoint.mcp.model.list.JsonRPCListResponseResultsTool;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -49,6 +50,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -152,6 +155,14 @@ public class MCPHandler {
 
         String builtPath = buildPath(jsonRPCCallRequestParams.getArguments(), mcpGatewayMappingHttp);
 
+        String apiContextPath = ctx.getAttribute(ExecutionContext.ATTR_CONTEXT_PATH);
+        if (apiContextPath.endsWith("/")) {
+            apiContextPath = apiContextPath.substring(0, apiContextPath.length() - 1);
+        }
+        if (builtPath.startsWith(apiContextPath)) {
+            builtPath = builtPath.substring(apiContextPath.length());
+        }
+
         log.debug("BuiltPath: {}", builtPath);
 
         mutableRequest.pathInfo(builtPath);
@@ -190,9 +201,11 @@ public class MCPHandler {
                 // To change this behavior, we need to improve GatewayMapping to support more complex query serialization methods from imported Swagger spec
                 // Link: https://swagger.io/docs/specification/v3_0/serialization/#query-parameters
                 if (arguments.get(arg) instanceof List<?> values) {
-                    return values.stream().map(value -> arg + "=" + value.toString());
+                    return values
+                        .stream()
+                        .map(value -> arg + "=" + URLEncoder.encode(value.toString(), StandardCharsets.UTF_8).replace("+", "%20"));
                 }
-                return Stream.of(arg + "=" + arguments.get(arg).toString());
+                return Stream.of(arg + "=" + URLEncoder.encode(arguments.get(arg).toString(), StandardCharsets.UTF_8).replace("+", "%20"));
             })
             .reduce((s, s2) -> s + "&" + s2);
         if (queryParams.isPresent()) {
