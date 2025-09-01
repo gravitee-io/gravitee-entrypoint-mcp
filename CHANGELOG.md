@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.2...1.0.3) (2025-09-01)
+
+
+### Bug Fixes
+
+* null & blank check for acceptHeader ([d8e8f7e](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/d8e8f7ea8971cf0c5f4b3c66983eb1c436b23f14))
+
 ## [1.0.2](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.1...1.0.2) (2025-08-14)
 
 
