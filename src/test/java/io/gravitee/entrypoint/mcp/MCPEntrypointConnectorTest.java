@@ -154,4 +154,27 @@ class MCPEntrypointConnectorTest {
 
         assertThat(matches).isFalse();
     }
+
+    @Test
+    void shouldNotMatchesWithNullAcceptHeader() {
+        when(ctx.request()).thenReturn(request);
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        when(request.headers()).thenReturn(httpHeaders);
+
+        boolean matches = cut.matches(ctx);
+
+        assertThat(matches).isFalse();
+    }
+
+    @Test
+    void shouldNotMatchesWithBlankAcceptHeader() {
+        when(ctx.request()).thenReturn(request);
+        HttpHeaders httpHeaders = HttpHeaders.create();
+        httpHeaders.set(HttpHeaderNames.ACCEPT, "  ");
+        when(request.headers()).thenReturn(httpHeaders);
+
+        boolean matches = cut.matches(ctx);
+
+        assertThat(matches).isFalse();
+    }
 }

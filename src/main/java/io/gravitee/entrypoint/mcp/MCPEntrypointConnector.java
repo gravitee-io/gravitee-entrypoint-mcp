@@ -80,6 +80,9 @@ public class MCPEntrypointConnector extends HttpEntrypointSyncConnector {
     @Override
     public boolean matches(final HttpExecutionContext ctx) {
         String acceptHeader = ctx.request().headers().get(HttpHeaderNames.ACCEPT);
+        if (acceptHeader == null || acceptHeader.isBlank()) {
+            return false;
+        }
         return (
             acceptHeader.contains(TEXT_EVENT_STREAM) &&
             acceptHeader.contains(APPLICATION_JSON) &&
