@@ -16,6 +16,7 @@
 package io.gravitee.entrypoint.mcp.model.list;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.entrypoint.mcp.configuration.MCPToolAnnotations;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,4 +31,5 @@ public class JsonRPCListResponseResultsTool {
     private String name;
     private String description;
     private JsonNode inputSchema;
+    private MCPToolAnnotations annotations;
 }

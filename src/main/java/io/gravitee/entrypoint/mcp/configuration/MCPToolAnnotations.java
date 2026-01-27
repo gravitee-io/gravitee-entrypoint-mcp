@@ -15,7 +15,6 @@
  */
 package io.gravitee.entrypoint.mcp.configuration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,10 +24,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @Data
-public class MCPToolDefinition {
+public class MCPToolAnnotations {
 
-    private String name;
-    private String description;
-    private JsonNode inputSchema;
-    private MCPToolAnnotations annotations;
+    private String title;
+    private Boolean readOnlyHint;
+    private Boolean destructiveHint;
+    private Boolean idempotentHint;
+    private Boolean openWorldHint;
 }

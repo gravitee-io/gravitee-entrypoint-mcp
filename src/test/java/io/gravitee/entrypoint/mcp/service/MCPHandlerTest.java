@@ -32,6 +32,7 @@ import io.gravitee.entrypoint.mcp.configuration.MCPEntrypointConnectorConfigurat
 import io.gravitee.entrypoint.mcp.configuration.MCPGatewayMapping;
 import io.gravitee.entrypoint.mcp.configuration.MCPGatewayMappingHttp;
 import io.gravitee.entrypoint.mcp.configuration.MCPTool;
+import io.gravitee.entrypoint.mcp.configuration.MCPToolAnnotations;
 import io.gravitee.entrypoint.mcp.configuration.MCPToolDefinition;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -86,7 +87,13 @@ class MCPHandlerTest {
             MCPTool
                 .builder()
                 .toolDefinition(
-                    MCPToolDefinition.builder().name("ToolName").description("ToolDescription").inputSchema(mapper.readTree("{}")).build()
+                    MCPToolDefinition
+                        .builder()
+                        .name("ToolName")
+                        .description("ToolDescription")
+                        .inputSchema(mapper.readTree("{}"))
+                        .annotations(new MCPToolAnnotations("My tool", true, false, true, false))
+                        .build()
                 )
                 .gatewayMapping(
                     MCPGatewayMapping
@@ -236,7 +243,7 @@ class MCPHandlerTest {
             assertThat((Integer) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_REQUEST_ID)).isNull();
 
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-            assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("114");
+            assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("236");
             verify(response).status(200);
             verify(response)
                 .body(
@@ -244,7 +251,7 @@ class MCPHandlerTest {
                         buffer
                             .toString()
                             .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolName\",\"description\":\"ToolDescription\",\"inputSchema\":{}}]}}"
+                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolName\",\"description\":\"ToolDescription\",\"inputSchema\":{},\"annotations\":{\"title\":\"My tool\",\"readOnlyHint\":true,\"destructiveHint\":false,\"idempotentHint\":true,\"openWorldHint\":false}}]}}"
                             )
                     )
                 );
