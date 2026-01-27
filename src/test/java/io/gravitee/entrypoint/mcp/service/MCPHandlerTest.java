@@ -189,7 +189,7 @@ class MCPHandlerTest {
                         buffer
                             .toString()
                             .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"ExampleApi\",\"version\":\"1.0.0\"}}}"
+                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"ExampleApi\",\"version\":\"1.0.0\"}}}"
                             )
                     )
                 );
@@ -252,6 +252,61 @@ class MCPHandlerTest {
                             .toString()
                             .equals(
                                 "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolName\",\"description\":\"ToolDescription\",\"inputSchema\":{},\"annotations\":{\"title\":\"My tool\",\"readOnlyHint\":true,\"destructiveHint\":false,\"idempotentHint\":true,\"openWorldHint\":false}}]}}"
+                            )
+                    )
+                );
+        }
+
+        @Test
+        void shouldHandleToolsListResponseWithOutputSchema() throws JsonProcessingException {
+            // Create a new handler with a tool that has outputSchema
+            List<MCPTool> toolsWithOutputSchema = List.of(
+                MCPTool
+                    .builder()
+                    .toolDefinition(
+                        MCPToolDefinition
+                            .builder()
+                            .name("ToolWithOutputSchema")
+                            .description("Tool with output schema")
+                            .inputSchema(mapper.readTree("{}"))
+                            .outputSchema(mapper.readTree("{\"type\":\"object\"}"))
+                            .build()
+                    )
+                    .gatewayMapping(
+                        MCPGatewayMapping
+                            .builder()
+                            .http(
+                                MCPGatewayMappingHttp
+                                    .builder()
+                                    .method("GET")
+                                    .path("/test")
+                                    .contentType("application/json")
+                                    .headers(List.of())
+                                    .pathParams(List.of())
+                                    .queryParams(List.of())
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            );
+            MCPEntrypointConnectorConfiguration configWithOutputSchema = new MCPEntrypointConnectorConfiguration();
+            configWithOutputSchema.setTools(toolsWithOutputSchema);
+            MCPHandler handlerWithOutputSchema = new MCPHandler(configWithOutputSchema);
+
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_SESSION_ID, "123-456-789");
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD, "tools/list");
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_REQUEST_ID, 1);
+
+            handlerWithOutputSchema.handleResponse(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+            verify(response)
+                .body(
+                    argThat(buffer ->
+                        buffer
+                            .toString()
+                            .equals(
+                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolWithOutputSchema\",\"description\":\"Tool with output schema\",\"inputSchema\":{},\"outputSchema\":{\"type\":\"object\"}}]}}"
                             )
                     )
                 );
@@ -328,25 +383,24 @@ class MCPHandlerTest {
         }
 
         @Test
-        void shouldHandleToolsCallResponse() {
+        void shouldHandleToolsCallResponseWithoutOutputSchema() {
+            // Tool does not have outputSchema, so response should NOT be wrapped in bodySchema
             ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_SESSION_ID, "123-456-789");
             ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD, "tools/call");
             ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_REQUEST_ID, 1);
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_TOOL_NAME, "ToolName");
 
-            when(response.body())
-                .thenReturn(Maybe.just(Buffer.buffer("""
-                {
-                  "foo": "bar"
-                }""")));
+            when(response.body()).thenReturn(Maybe.just(Buffer.buffer("{\"foo\":\"bar\"}")));
 
             cut.handleResponse(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_SESSION_ID)).isNull();
             assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD)).isNull();
             assertThat((Integer) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_REQUEST_ID)).isNull();
+            assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_TOOL_NAME)).isNull();
 
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-            assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("111");
+            assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("104");
             verify(response).status(200);
             verify(response)
                 .body(
@@ -354,7 +408,70 @@ class MCPHandlerTest {
                         buffer
                             .toString()
                             .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\n  \\\"foo\\\": \\\"bar\\\"\\n}\"}],\"error\":false}}"
+                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"foo\\\":\\\"bar\\\"}\"}],\"error\":false}}"
+                            )
+                    )
+                );
+        }
+
+        @Test
+        void shouldHandleToolsCallResponseWithOutputSchema() throws JsonProcessingException {
+            // Create a new handler with a tool that has outputSchema
+            List<MCPTool> toolsWithOutputSchema = List.of(
+                MCPTool
+                    .builder()
+                    .toolDefinition(
+                        MCPToolDefinition
+                            .builder()
+                            .name("ToolWithOutputSchema")
+                            .description("Tool with output schema")
+                            .inputSchema(mapper.readTree("{}"))
+                            .outputSchema(mapper.readTree("{\"type\":\"object\"}"))
+                            .build()
+                    )
+                    .gatewayMapping(
+                        MCPGatewayMapping
+                            .builder()
+                            .http(
+                                MCPGatewayMappingHttp
+                                    .builder()
+                                    .method("GET")
+                                    .path("/test")
+                                    .contentType("application/json")
+                                    .headers(List.of())
+                                    .pathParams(List.of())
+                                    .queryParams(List.of())
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            );
+            MCPEntrypointConnectorConfiguration configWithOutputSchema = new MCPEntrypointConnectorConfiguration();
+            configWithOutputSchema.setTools(toolsWithOutputSchema);
+            MCPHandler handlerWithOutputSchema = new MCPHandler(configWithOutputSchema);
+
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_SESSION_ID, "123-456-789");
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD, "tools/call");
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_REQUEST_ID, 1);
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_TOOL_NAME, "ToolWithOutputSchema");
+
+            when(response.body()).thenReturn(Maybe.just(Buffer.buffer("{\"foo\":\"bar\"}")));
+
+            handlerWithOutputSchema.handleResponse(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+            assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_TOOL_NAME)).isNull();
+
+            assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
+            assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("170");
+            verify(response).status(200);
+            verify(response)
+                .body(
+                    argThat(buffer ->
+                        buffer
+                            .toString()
+                            .equals(
+                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"bodySchema\\\":{\\\"foo\\\":\\\"bar\\\"}}\"}],\"structuredContent\":{\"bodySchema\":{\"foo\":\"bar\"}},\"error\":false}}"
                             )
                     )
                 );

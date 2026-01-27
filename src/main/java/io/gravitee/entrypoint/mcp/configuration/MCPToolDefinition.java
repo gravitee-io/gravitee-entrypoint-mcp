@@ -30,5 +30,6 @@ public class MCPToolDefinition {
     private String name;
     private String description;
     private JsonNode inputSchema;
+    private JsonNode outputSchema;
     private MCPToolAnnotations annotations;
 }
