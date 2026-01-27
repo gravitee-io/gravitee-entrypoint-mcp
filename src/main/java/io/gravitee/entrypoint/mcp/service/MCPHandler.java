@@ -85,6 +85,7 @@ public class MCPHandler {
                         .name(mcpTool.getToolDefinition().getName())
                         .description(mcpTool.getToolDefinition().getDescription())
                         .inputSchema(mcpTool.getToolDefinition().getInputSchema())
+                        .annotations(mcpTool.getToolDefinition().getAnnotations())
                         .build()
                 )
                 .toList();

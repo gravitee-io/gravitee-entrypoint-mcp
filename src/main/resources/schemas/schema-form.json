@@ -2,6 +2,40 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "definitions": {
+        "MCPToolAnnotations": {
+            "description": "Optional properties describing tool behavior",
+            "properties": {
+                "title": {
+                    "title": "Title",
+                    "type": "string",
+                    "description": "Human-readable title for the tool"
+                },
+                "readOnlyHint": {
+                    "title": "Read-only",
+                    "type": "boolean",
+                    "description": "If true, the tool does not modify its environment",
+                    "default": false
+                },
+                "destructiveHint": {
+                    "title": "Destructive",
+                    "type": "boolean",
+                    "description": "If true, the tool may perform destructive updates",
+                    "default": true
+                },
+                "idempotentHint": {
+                    "title": "Idempotent",
+                    "type": "boolean",
+                    "description": "If true, calling the tool repeatedly with same args has no additional effect",
+                    "default": false
+                },
+                "openWorldHint": {
+                    "title": "Open World",
+                    "type": "boolean",
+                    "description": "If true, the tool may interact with external entities",
+                    "default": true
+                }
+            }
+        },
         "MCPGatewayMappingHttp": {
             "description": "Contains information that will be used by the gateway to map a JsonRPCRequest to an HTTP call to the backend.",
             "properties": {
@@ -65,6 +99,10 @@
                     "type": "object",
                     "description": "Input schema of the MCP tool.",
                     "additionalProperties": true
+                },
+                "annotations": {
+                    "title": "Tool annotations",
+                    "$ref": "#/definitions/MCPToolAnnotations"
                 }
             }
         },
