@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class JsonRPCInitializeResponseResults extends JsonRPCResponseResults {
 
-    public static final String SUPPORTED_PROTOCOL_VERSION = "2025-03-26";
+    public static final String SUPPORTED_PROTOCOL_VERSION = "2025-11-25";
 
     private String protocolVersion = SUPPORTED_PROTOCOL_VERSION;
     private Map<String, Object> capabilities;

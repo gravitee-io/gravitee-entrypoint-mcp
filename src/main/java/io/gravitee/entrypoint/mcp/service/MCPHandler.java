@@ -65,6 +65,7 @@ public class MCPHandler {
     static final String ATTR_INTERNAL_MCP_METHOD = "mcp.method";
     static final String ATTR_INTERNAL_MCP_SESSION_ID = "mcp.session.id";
     static final String ATTR_INTERNAL_MCP_REQUEST_ID = "mcp.request.id";
+    static final String ATTR_INTERNAL_MCP_TOOL_NAME = "mcp.tool.name";
     static final String ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST = "mcp.error.invalid_request";
     static final String ATTR_INTERNAL_MCP_ERROR_PARSE_ERROR = "mcp.error.parse_error";
     static final String ATTR_INTERNAL_MCP_ERROR_INTERNAL_ERROR = "mcp.error.internal_error";
@@ -85,6 +86,7 @@ public class MCPHandler {
                         .name(mcpTool.getToolDefinition().getName())
                         .description(mcpTool.getToolDefinition().getDescription())
                         .inputSchema(mcpTool.getToolDefinition().getInputSchema())
+                        .outputSchema(mcpTool.getToolDefinition().getOutputSchema())
                         .annotations(mcpTool.getToolDefinition().getAnnotations())
                         .build()
                 )
@@ -126,7 +128,9 @@ public class MCPHandler {
                                     ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP, Boolean.FALSE);
 
                                     log.debug("Preparing call to the endpoint");
-                                    prepareToolCallRequest(ctx, mapper.convertValue(jsonNode, JsonRPCCallRequest.class));
+                                    JsonRPCCallRequest callRequest = mapper.convertValue(jsonNode, JsonRPCCallRequest.class);
+                                    ctx.setInternalAttribute(ATTR_INTERNAL_MCP_TOOL_NAME, callRequest.getParams().getName());
+                                    prepareToolCallRequest(ctx, callRequest);
                                 }
                             }
                         } catch (IOException ex) {
@@ -254,7 +258,10 @@ public class MCPHandler {
                 );
 
                 if (mcpMethod.equals("tools/call")) {
-                    return ctx.response().body().map(body -> formatToolResponse(jsonRequestId, body));
+                    String toolName = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_TOOL_NAME);
+                    ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_TOOL_NAME);
+                    boolean hasOutputSchema = hasToolOutputSchema(toolName);
+                    return ctx.response().body().map(body -> formatToolResponse(jsonRequestId, body, hasOutputSchema));
                 } else {
                     byte[] data =
                         switch (mcpMethod) {
@@ -312,13 +319,37 @@ public class MCPHandler {
         return mapper.writeValueAsString(listResponse).getBytes();
     }
 
-    private byte[] formatToolResponse(Integer jsonRequestId, Buffer buffer) throws JsonProcessingException {
+    private boolean hasToolOutputSchema(String toolName) {
+        return this.configuration.getTools()
+            .stream()
+            .filter(mcpTool -> mcpTool.getToolDefinition().getName().equals(toolName))
+            .findFirst()
+            .map(mcpTool -> mcpTool.getToolDefinition().getOutputSchema() != null)
+            .orElse(false);
+    }
+
+    private byte[] formatToolResponse(Integer jsonRequestId, Buffer buffer, boolean hasOutputSchema) throws IOException {
         JsonRPCCallResponse callResponse = new JsonRPCCallResponse();
         callResponse.setId(jsonRequestId);
+
         JsonRPCCallResponseResults jsonRPCCallResponseResults = new JsonRPCCallResponseResults();
-        jsonRPCCallResponseResults.setContent(
-            List.of(JsonRPCCallResponseResultsContent.builder().type("text").text(buffer.toString()).build())
-        );
+
+        if (hasOutputSchema) {
+            JsonNode bodyContent = mapper.readTree(buffer.getBytes());
+            var encapsulatedContent = Map.of("bodySchema", bodyContent);
+
+            jsonRPCCallResponseResults.setContent(
+                List.of(
+                    JsonRPCCallResponseResultsContent.builder().type("text").text(mapper.writeValueAsString(encapsulatedContent)).build()
+                )
+            );
+            jsonRPCCallResponseResults.setStructuredContent(encapsulatedContent);
+        } else {
+            jsonRPCCallResponseResults.setContent(
+                List.of(JsonRPCCallResponseResultsContent.builder().type("text").text(buffer.toString()).build())
+            );
+        }
+
         callResponse.setResult(jsonRPCCallResponseResults);
         log.debug("Tools/call response: {}", callResponse);
 

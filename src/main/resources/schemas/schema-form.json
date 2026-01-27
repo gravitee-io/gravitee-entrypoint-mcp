@@ -100,6 +100,12 @@
                     "description": "Input schema of the MCP tool.",
                     "additionalProperties": true
                 },
+                "outputSchema": {
+                    "title": "Tool output schema",
+                    "type": "object",
+                    "description": "Output schema of the MCP tool.",
+                    "additionalProperties": true
+                },
                 "annotations": {
                     "title": "Tool annotations",
                     "$ref": "#/definitions/MCPToolAnnotations"

@@ -27,5 +27,6 @@ import lombok.NoArgsConstructor;
 public class JsonRPCCallResponseResults extends JsonRPCResponseResults {
 
     private List<JsonRPCCallResponseResultsContent> content;
+    private Object structuredContent;
     private boolean isError;
 }
