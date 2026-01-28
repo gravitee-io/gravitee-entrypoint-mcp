@@ -77,20 +77,18 @@ public class MCPHandler {
         this.configuration = configuration;
         this.mapper = new ObjectMapper();
         this.mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        this.tools =
-            this.configuration.getTools()
-                .stream()
-                .map(mcpTool ->
-                    JsonRPCListResponseResultsTool
-                        .builder()
-                        .name(mcpTool.getToolDefinition().getName())
-                        .description(mcpTool.getToolDefinition().getDescription())
-                        .inputSchema(mcpTool.getToolDefinition().getInputSchema())
-                        .outputSchema(mcpTool.getToolDefinition().getOutputSchema())
-                        .annotations(mcpTool.getToolDefinition().getAnnotations())
-                        .build()
-                )
-                .toList();
+        this.tools = this.configuration.getTools()
+            .stream()
+            .map(mcpTool ->
+                JsonRPCListResponseResultsTool.builder()
+                    .name(mcpTool.getToolDefinition().getName())
+                    .description(mcpTool.getToolDefinition().getDescription())
+                    .inputSchema(mcpTool.getToolDefinition().getInputSchema())
+                    .outputSchema(mcpTool.getToolDefinition().getOutputSchema())
+                    .annotations(mcpTool.getToolDefinition().getAnnotations())
+                    .build()
+            )
+            .toList();
     }
 
     // HANDLE REQUEST
@@ -143,15 +141,14 @@ public class MCPHandler {
 
     private void prepareToolCallRequest(HttpExecutionContext ctx, JsonRPCCallRequest jsonRPCCallRequest) throws Exception {
         JsonRPCCallRequestParams jsonRPCCallRequestParams = jsonRPCCallRequest.getParams();
-        MCPGatewayMappingHttp mcpGatewayMappingHttp =
-            this.configuration.getTools()
-                .stream()
-                .filter(mcpTool -> mcpTool.getToolDefinition().getName().equals(jsonRPCCallRequestParams.getName()))
-                .map(mcpTool -> mcpTool.getGatewayMapping().getHttp())
-                .filter(Objects::nonNull)
-                .findFirst()
-                // TODO: manage this exception properly
-                .orElseThrow(() -> new Exception("tool not found"));
+        MCPGatewayMappingHttp mcpGatewayMappingHttp = this.configuration.getTools()
+            .stream()
+            .filter(mcpTool -> mcpTool.getToolDefinition().getName().equals(jsonRPCCallRequestParams.getName()))
+            .map(mcpTool -> mcpTool.getGatewayMapping().getHttp())
+            .filter(Objects::nonNull)
+            .findFirst()
+            // TODO: manage this exception properly
+            .orElseThrow(() -> new Exception("tool not found"));
 
         log.debug("MCPGatewayMapping: {}", mcpGatewayMappingHttp);
 
@@ -226,56 +223,57 @@ public class MCPHandler {
 
     // HANDLE RESPONSE
     public Completable handleResponse(HttpExecutionContext ctx) {
-        return Maybe
-            .defer(() -> {
-                Boolean isInternalError = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_ERROR_INTERNAL_ERROR);
-                if (isInternalError != null && isInternalError) {
-                    return Maybe.just(internalError());
-                }
+        return Maybe.defer(() -> {
+            Boolean isInternalError = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_ERROR_INTERNAL_ERROR);
+            if (isInternalError != null && isInternalError) {
+                return Maybe.just(internalError());
+            }
 
-                Boolean isParseError = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_ERROR_PARSE_ERROR);
-                if (isParseError != null && isParseError) {
-                    return Maybe.just(parseError());
-                }
+            Boolean isParseError = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_ERROR_PARSE_ERROR);
+            if (isParseError != null && isParseError) {
+                return Maybe.just(parseError());
+            }
 
-                Boolean isInvalidRequest = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST);
-                if (isInvalidRequest != null && isInvalidRequest) {
-                    return Maybe.just(invalidRequest());
-                }
+            Boolean isInvalidRequest = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST);
+            if (isInvalidRequest != null && isInvalidRequest) {
+                return Maybe.just(invalidRequest());
+            }
 
-                String mcpMethod = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_METHOD);
-                Integer jsonRequestId = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_REQUEST_ID);
-                String sessionId = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_SESSION_ID);
-                ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_METHOD);
-                ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_REQUEST_ID);
-                ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_SESSION_ID);
+            String mcpMethod = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_METHOD);
+            Integer jsonRequestId = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_REQUEST_ID);
+            String sessionId = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_SESSION_ID);
+            ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_METHOD);
+            ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_REQUEST_ID);
+            ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_SESSION_ID);
 
-                log.debug(
-                    "Received POST response for MCP with method: {}, request id: {} and session id: {}",
-                    mcpMethod,
-                    jsonRequestId,
-                    sessionId
-                );
+            log.debug(
+                "Received POST response for MCP with method: {}, request id: {} and session id: {}",
+                mcpMethod,
+                jsonRequestId,
+                sessionId
+            );
 
-                if (mcpMethod.equals("tools/call")) {
-                    String toolName = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_TOOL_NAME);
-                    ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_TOOL_NAME);
-                    boolean hasOutputSchema = hasToolOutputSchema(toolName);
-                    return ctx.response().body().map(body -> formatToolResponse(jsonRequestId, body, hasOutputSchema));
-                } else {
-                    byte[] data =
-                        switch (mcpMethod) {
-                            case "initialize" -> {
-                                Api api = ctx.getComponent(Api.class);
-                                yield initialize(jsonRequestId, api.getName(), api.getApiVersion());
-                            }
-                            case "tools/list" -> listTools(jsonRequestId, this.tools);
-                            case "notifications/cancelled", "notifications/initialized" -> new byte[0];
-                            default -> notSupportedMethod(jsonRequestId, mcpMethod);
-                        };
-                    return Maybe.just(data);
-                }
-            })
+            if (mcpMethod.equals("tools/call")) {
+                String toolName = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_TOOL_NAME);
+                ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_TOOL_NAME);
+                boolean hasOutputSchema = hasToolOutputSchema(toolName);
+                return ctx
+                    .response()
+                    .body()
+                    .map(body -> formatToolResponse(jsonRequestId, body, hasOutputSchema));
+            } else {
+                byte[] data = switch (mcpMethod) {
+                    case "initialize" -> {
+                        Api api = ctx.getComponent(Api.class);
+                        yield initialize(jsonRequestId, api.getName(), api.getApiVersion());
+                    }
+                    case "tools/list" -> listTools(jsonRequestId, this.tools);
+                    case "notifications/cancelled", "notifications/initialized" -> new byte[0];
+                    default -> notSupportedMethod(jsonRequestId, mcpMethod);
+                };
+                return Maybe.just(data);
+            }
+        })
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);
                 return Maybe.just(internalError());
