@@ -84,11 +84,9 @@ class MCPHandlerTest {
         lenient().when(response.body()).thenReturn(Maybe.empty());
 
         List<MCPTool> tools = List.of(
-            MCPTool
-                .builder()
+            MCPTool.builder()
                 .toolDefinition(
-                    MCPToolDefinition
-                        .builder()
+                    MCPToolDefinition.builder()
                         .name("ToolName")
                         .description("ToolDescription")
                         .inputSchema(mapper.readTree("{}"))
@@ -96,11 +94,9 @@ class MCPHandlerTest {
                         .build()
                 )
                 .gatewayMapping(
-                    MCPGatewayMapping
-                        .builder()
+                    MCPGatewayMapping.builder()
                         .http(
-                            MCPGatewayMappingHttp
-                                .builder()
+                            MCPGatewayMappingHttp.builder()
                                 .method("POST")
                                 .path("/foo/:myPathParam/bar/:anotherParam")
                                 .contentType("application/json")
@@ -131,24 +127,24 @@ class MCPHandlerTest {
                     Maybe.just(
                         Buffer.buffer(
                             """
-            {
-               "jsonrpc": "2.0",
-               "id": 1,
-               "method": "initialize",
-               "params": {
-                 "protocolVersion": "2025-03-26",
-                 "capabilities": {
-                   "roots": {
-                     "listChanged": true
-                   },
-                   "sampling": {}
-                 },
-                 "clientInfo": {
-                   "name": "ExampleClient",
-                   "version": "1.0.0"
-                 }
-               }
-             }"""
+                            {
+                               "jsonrpc": "2.0",
+                               "id": 1,
+                               "method": "initialize",
+                               "params": {
+                                 "protocolVersion": "2025-03-26",
+                                 "capabilities": {
+                                   "roots": {
+                                     "listChanged": true
+                                   },
+                                   "sampling": {}
+                                 },
+                                 "clientInfo": {
+                                   "name": "ExampleClient",
+                                   "version": "1.0.0"
+                                 }
+                               }
+                             }"""
                         )
                     )
                 );
@@ -183,16 +179,15 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("147");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"ExampleApi\",\"version\":\"1.0.0\"}}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"ExampleApi\",\"version\":\"1.0.0\"}}}"
+                        )
+                )
+            );
         }
     }
 
@@ -207,14 +202,14 @@ class MCPHandlerTest {
                     Maybe.just(
                         Buffer.buffer(
                             """
-                {
-                  "jsonrpc": "2.0",
-                  "id": 1,
-                  "method": "tools/list",
-                  "params": {
-                    "cursor": "optional-cursor-value"
-                  }
-                }"""
+                            {
+                              "jsonrpc": "2.0",
+                              "id": 1,
+                              "method": "tools/list",
+                              "params": {
+                                "cursor": "optional-cursor-value"
+                              }
+                            }"""
                         )
                     )
                 );
@@ -245,27 +240,24 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("236");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolName\",\"description\":\"ToolDescription\",\"inputSchema\":{},\"annotations\":{\"title\":\"My tool\",\"readOnlyHint\":true,\"destructiveHint\":false,\"idempotentHint\":true,\"openWorldHint\":false}}]}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolName\",\"description\":\"ToolDescription\",\"inputSchema\":{},\"annotations\":{\"title\":\"My tool\",\"readOnlyHint\":true,\"destructiveHint\":false,\"idempotentHint\":true,\"openWorldHint\":false}}]}}"
+                        )
+                )
+            );
         }
 
         @Test
         void shouldHandleToolsListResponseWithOutputSchema() throws JsonProcessingException {
             // Create a new handler with a tool that has outputSchema
             List<MCPTool> toolsWithOutputSchema = List.of(
-                MCPTool
-                    .builder()
+                MCPTool.builder()
                     .toolDefinition(
-                        MCPToolDefinition
-                            .builder()
+                        MCPToolDefinition.builder()
                             .name("ToolWithOutputSchema")
                             .description("Tool with output schema")
                             .inputSchema(mapper.readTree("{}"))
@@ -273,11 +265,9 @@ class MCPHandlerTest {
                             .build()
                     )
                     .gatewayMapping(
-                        MCPGatewayMapping
-                            .builder()
+                        MCPGatewayMapping.builder()
                             .http(
-                                MCPGatewayMappingHttp
-                                    .builder()
+                                MCPGatewayMappingHttp.builder()
                                     .method("GET")
                                     .path("/test")
                                     .contentType("application/json")
@@ -300,16 +290,15 @@ class MCPHandlerTest {
 
             handlerWithOutputSchema.handleResponse(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolWithOutputSchema\",\"description\":\"Tool with output schema\",\"inputSchema\":{},\"outputSchema\":{\"type\":\"object\"}}]}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"ToolWithOutputSchema\",\"description\":\"Tool with output schema\",\"inputSchema\":{},\"outputSchema\":{\"type\":\"object\"}}]}}"
+                        )
+                )
+            );
         }
     }
 
@@ -324,26 +313,26 @@ class MCPHandlerTest {
                     Maybe.just(
                         Buffer.buffer(
                             """
-                {
-                  "jsonrpc": "2.0",
-                  "id": 2,
-                  "method": "tools/call",
-                  "params": {
-                    "name": "ToolName",
-                    "arguments": {
-                      "X-My-Header": "headerValue",
-                      "myPathParam": "pathParam1",
-                      "anotherParam": "pathParam2",
-                      "myQueryParam": "queryValue",
-                      "myQueryParam2": ["value1", "value2"],
-                      "myQueryParam3": [],
-                      "myQueryParam4": "query with space",
-                      "bodySchema": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }"""
+                            {
+                              "jsonrpc": "2.0",
+                              "id": 2,
+                              "method": "tools/call",
+                              "params": {
+                                "name": "ToolName",
+                                "arguments": {
+                                  "X-My-Header": "headerValue",
+                                  "myPathParam": "pathParam1",
+                                  "anotherParam": "pathParam2",
+                                  "myQueryParam": "queryValue",
+                                  "myQueryParam2": ["value1", "value2"],
+                                  "myQueryParam3": [],
+                                  "myQueryParam4": "query with space",
+                                  "bodySchema": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }"""
                         )
                     )
                 );
@@ -364,10 +353,9 @@ class MCPHandlerTest {
             assertThat(requestHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo(String.valueOf(sentBuffer.getBytes().length));
             assertThat(requestHeaders.get(HttpHeaderNames.ACCEPT)).isEqualTo("application/json");
             verify(request).method(HttpMethod.POST);
-            verify(request)
-                .pathInfo(
-                    "/foo/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2&myQueryParam4=query%20with%20space"
-                );
+            verify(request).pathInfo(
+                "/foo/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2&myQueryParam4=query%20with%20space"
+            );
             verify(request).body(argThat(buffer -> buffer.toString().equals(sentBuffer)));
         }
 
@@ -376,10 +364,9 @@ class MCPHandlerTest {
             ctx.setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, "/foo");
 
             cut.handleRequest(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
-            verify(request)
-                .pathInfo(
-                    "/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2&myQueryParam4=query%20with%20space"
-                );
+            verify(request).pathInfo(
+                "/pathParam1/bar/pathParam2?myQueryParam=queryValue&myQueryParam2=value1&myQueryParam2=value2&myQueryParam4=query%20with%20space"
+            );
         }
 
         @Test
@@ -402,27 +389,24 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("104");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"foo\\\":\\\"bar\\\"}\"}],\"error\":false}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"foo\\\":\\\"bar\\\"}\"}],\"error\":false}}"
+                        )
+                )
+            );
         }
 
         @Test
         void shouldHandleToolsCallResponseWithOutputSchema() throws JsonProcessingException {
             // Create a new handler with a tool that has outputSchema
             List<MCPTool> toolsWithOutputSchema = List.of(
-                MCPTool
-                    .builder()
+                MCPTool.builder()
                     .toolDefinition(
-                        MCPToolDefinition
-                            .builder()
+                        MCPToolDefinition.builder()
                             .name("ToolWithOutputSchema")
                             .description("Tool with output schema")
                             .inputSchema(mapper.readTree("{}"))
@@ -430,11 +414,9 @@ class MCPHandlerTest {
                             .build()
                     )
                     .gatewayMapping(
-                        MCPGatewayMapping
-                            .builder()
+                        MCPGatewayMapping.builder()
                             .http(
-                                MCPGatewayMappingHttp
-                                    .builder()
+                                MCPGatewayMappingHttp.builder()
                                     .method("GET")
                                     .path("/test")
                                     .contentType("application/json")
@@ -465,16 +447,15 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("170");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"bodySchema\\\":{\\\"foo\\\":\\\"bar\\\"}}\"}],\"structuredContent\":{\"bodySchema\":{\"foo\":\"bar\"}},\"error\":false}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"bodySchema\\\":{\\\"foo\\\":\\\"bar\\\"}}\"}],\"structuredContent\":{\"bodySchema\":{\"foo\":\"bar\"}},\"error\":false}}"
+                        )
+                )
+            );
         }
     }
 
@@ -510,16 +491,15 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("116");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32700,\"message\":\"Parse error\",\"data\":{\"reason\":\"Json body is not valid\"}}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32700,\"message\":\"Parse error\",\"data\":{\"reason\":\"Json body is not valid\"}}}"
+                        )
+                )
+            );
         }
     }
 
@@ -528,17 +508,16 @@ class MCPHandlerTest {
 
         @Test
         void shouldPrepareInvalidRequest() {
-            when(request.body())
-                .thenReturn(
-                    Maybe.just(
-                        Buffer.buffer(
-                            """
-                            {
-                                "error": "not a valid RPC Request"
-                            }"""
-                        )
+            when(request.body()).thenReturn(
+                Maybe.just(
+                    Buffer.buffer(
+                        """
+                        {
+                            "error": "not a valid RPC Request"
+                        }"""
                     )
-                );
+                )
+            );
 
             cut.handleRequest(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
             assertThat((Boolean) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP)).isTrue();
@@ -566,16 +545,15 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("125");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32600,\"message\":\"Invalid request\",\"data\":{\"reason\":\"Json is not a valid request\"}}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32600,\"message\":\"Invalid request\",\"data\":{\"reason\":\"Json is not a valid request\"}}}"
+                        )
+                )
+            );
         }
     }
 
@@ -596,16 +574,15 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("122");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32601,\"message\":\"Method not found\",\"data\":{\"reason\":\"Method not found: foobar\"}}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32601,\"message\":\"Method not found\",\"data\":{\"reason\":\"Method not found: foobar\"}}}"
+                        )
+                )
+            );
         }
     }
 
@@ -625,16 +602,15 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("142");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32603,\"message\":\"Internal server error\",\"data\":{\"reason\":\"Error occurred during request handling\"}}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32603,\"message\":\"Internal server error\",\"data\":{\"reason\":\"Error occurred during request handling\"}}}"
+                        )
+                )
+            );
         }
 
         @Test
@@ -653,16 +629,15 @@ class MCPHandlerTest {
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
             assertThat(responseHeaders.get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo("142");
             verify(response).status(200);
-            verify(response)
-                .body(
-                    argThat(buffer ->
-                        buffer
-                            .toString()
-                            .equals(
-                                "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32603,\"message\":\"Internal server error\",\"data\":{\"reason\":\"Error occurred during request handling\"}}}"
-                            )
-                    )
-                );
+            verify(response).body(
+                argThat(buffer ->
+                    buffer
+                        .toString()
+                        .equals(
+                            "{\"jsonrpc\":\"2.0\",\"id\":-1,\"error\":{\"code\":-32603,\"message\":\"Internal server error\",\"data\":{\"reason\":\"Error occurred during request handling\"}}}"
+                        )
+                )
+            );
         }
     }
 
