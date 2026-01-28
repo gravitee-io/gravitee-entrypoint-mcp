@@ -643,4 +643,95 @@ class MCPHandlerTest {
 
     @Nested
     class InvalidParams {}
+
+    @Nested
+    class NotificationRequest {
+
+        @Test
+        void shouldHandleNotificationWithoutIdField() {
+            when(request.body()).thenReturn(
+                Maybe.just(
+                    Buffer.buffer(
+                        """
+                        {
+                            "jsonrpc": "2.0",
+                            "method": "notifications/initialized"
+                        }"""
+                    )
+                )
+            );
+
+            cut.handleRequest(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+            assertThat((Boolean) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST)).isNull();
+            assertThat((Boolean) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_IS_NOTIFICATION)).isTrue();
+            assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD)).isEqualTo("notifications/initialized");
+            assertThat((Integer) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_REQUEST_ID)).isNull();
+            assertThat((Boolean) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP)).isTrue();
+        }
+
+        @Test
+        void shouldHandleNotificationCancelledWithoutIdField() {
+            when(request.body()).thenReturn(
+                Maybe.just(
+                    Buffer.buffer(
+                        """
+                        {
+                            "jsonrpc": "2.0",
+                            "method": "notifications/cancelled",
+                            "params": {
+                                "requestId": 123,
+                                "reason": "User cancelled"
+                            }
+                        }"""
+                    )
+                )
+            );
+
+            cut.handleRequest(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+            assertThat((Boolean) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST)).isNull();
+            assertThat((Boolean) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_IS_NOTIFICATION)).isTrue();
+            assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD)).isEqualTo("notifications/cancelled");
+        }
+
+        @Test
+        void shouldNotSendResponseForNotification() {
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_IS_NOTIFICATION, Boolean.TRUE);
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD, "notifications/initialized");
+            ctx.setInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_SESSION_ID, "123-456-789");
+
+            cut.handleResponse(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+            // Verify internal attributes are cleaned up
+            assertThat((Boolean) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_IS_NOTIFICATION)).isNull();
+            assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_METHOD)).isNull();
+            assertThat((String) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_SESSION_ID)).isNull();
+
+            // Verify no response is sent
+            verify(response, never()).body(any(Buffer.class));
+            verify(response, never()).status(any(Integer.class));
+        }
+
+        @Test
+        void shouldStillRequireIdForNonNotificationMethods() {
+            when(request.body()).thenReturn(
+                Maybe.just(
+                    Buffer.buffer(
+                        """
+                        {
+                            "jsonrpc": "2.0",
+                            "method": "initialize"
+                        }"""
+                    )
+                )
+            );
+
+            cut.handleRequest(ctx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+            // Non-notification methods without id should be invalid
+            assertThat((Boolean) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST)).isTrue();
+            assertThat((Boolean) ctx.getInternalAttribute(MCPHandler.ATTR_INTERNAL_MCP_IS_NOTIFICATION)).isNull();
+        }
+    }
 }
