@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.3...1.1.0) (2026-01-28)
+
+
+### Bug Fixes
+
+* proper support for MCP notification handling ([918620d](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/918620d6313989a9d540198eb0c762ae1419ff04))
+
+
+### Features
+
+* support outputSchema in tool definition ([b350fc7](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/b350fc7d377cfd1996a6785547865c3218b1325d))
+* support tool annotations ([4c56356](https://github.com/gravitee-io/gravitee-entrypoint-mcp/commit/4c5635629ab415a5f44ae80fd3a1f1450f6c167f))
+
 ## [1.0.3](https://github.com/gravitee-io/gravitee-entrypoint-mcp/compare/1.0.2...1.0.3) (2025-09-01)
 
 
