@@ -69,6 +69,7 @@ public class MCPHandler {
     static final String ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST = "mcp.error.invalid_request";
     static final String ATTR_INTERNAL_MCP_ERROR_PARSE_ERROR = "mcp.error.parse_error";
     static final String ATTR_INTERNAL_MCP_ERROR_INTERNAL_ERROR = "mcp.error.internal_error";
+    static final String ATTR_INTERNAL_MCP_IS_NOTIFICATION = "mcp.is_notification";
     private final ObjectMapper mapper;
     private final MCPEntrypointConnectorConfiguration configuration;
     private final List<JsonRPCListResponseResultsTool> tools;
@@ -113,12 +114,21 @@ public class MCPHandler {
                         try {
                             JsonNode jsonNode = mapper.readTree(buffer.getBytes());
                             JsonNode idNode = jsonNode.get("id");
-                            if (jsonNode.get("jsonrpc") == null || idNode == null) {
+                            String mcpMethod = jsonNode.at("/method").asText();
+                            boolean isNotification = mcpMethod.startsWith("notifications/");
+
+                            if (jsonNode.get("jsonrpc") == null) {
+                                ctx.setInternalAttribute(ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST, Boolean.TRUE);
+                            } else if (!isNotification && idNode == null) {
+                                // Non-notification messages require an id
                                 ctx.setInternalAttribute(ATTR_INTERNAL_MCP_ERROR_INVALID_REQUEST, Boolean.TRUE);
                             } else {
-                                String mcpMethod = jsonNode.get("method").asText();
                                 ctx.setInternalAttribute(ATTR_INTERNAL_MCP_METHOD, mcpMethod);
-                                ctx.setInternalAttribute(ATTR_INTERNAL_MCP_REQUEST_ID, idNode.asInt());
+                                if (isNotification) {
+                                    ctx.setInternalAttribute(ATTR_INTERNAL_MCP_IS_NOTIFICATION, Boolean.TRUE);
+                                } else {
+                                    ctx.setInternalAttribute(ATTR_INTERNAL_MCP_REQUEST_ID, idNode.asInt());
+                                }
 
                                 log.debug("Handling request for method {}", mcpMethod);
                                 if (mcpMethod.equals("tools/call")) {
@@ -239,6 +249,14 @@ public class MCPHandler {
                 return Maybe.just(invalidRequest());
             }
 
+            Boolean isNotification = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_IS_NOTIFICATION);
+            if (isNotification != null && isNotification) {
+                ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_IS_NOTIFICATION);
+                ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_METHOD);
+                ctx.removeInternalAttribute(ATTR_INTERNAL_MCP_SESSION_ID);
+                return Maybe.just(new byte[0]);
+            }
+
             String mcpMethod = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_METHOD);
             Integer jsonRequestId = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_REQUEST_ID);
             String sessionId = ctx.getInternalAttribute(ATTR_INTERNAL_MCP_SESSION_ID);
@@ -268,7 +286,6 @@ public class MCPHandler {
                         yield initialize(jsonRequestId, api.getName(), api.getApiVersion());
                     }
                     case "tools/list" -> listTools(jsonRequestId, this.tools);
-                    case "notifications/cancelled", "notifications/initialized" -> new byte[0];
                     default -> notSupportedMethod(jsonRequestId, mcpMethod);
                 };
                 return Maybe.just(data);
